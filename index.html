@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Handwriting recognition</title>
+  <link rel="icon" type="image/png" href="img/logo.png">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+</head>
+<body ng-app="drawApp">
+
+<div class="container" ng-controller="DrawCtrl">
+
+  <div>
+    <canvas id="canvas" width="150px" height="150px"></canvas>
+  </div>
+
+  </p>
+    <button ng-click="clear()" class="btn btn-default">Clear</button>
+    <button ng-click="getInvariants()" class="btn btn-success">Invariants</button>
+  </p>
+
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+<script type="text/javascript" src="Recognizer.js"></script>
+
+<script>
+
+var recognition = new Recognizer(document.querySelector('#canvas'));
+
+angular.module('drawApp', []).
+controller('DrawCtrl', function($scope){
+
+  $scope.clear = function(){
+    recognition.clear();
+  };
+
+  $scope.getInvariants = function(){
+    console.log(recognition.getInvariants());
+  };
+
+});
+  
+</script>
+
+</body>
+</html>
