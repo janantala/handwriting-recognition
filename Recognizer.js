@@ -191,12 +191,11 @@ var Recognizer = function(canvas) {
           }
         }
 
-        console.log(blackPixels);
         if (blackPixels / (SAMPLE * SAMPLE) > 0.1) {
-          data.push(true);
+          data.push(1);
         }
         else {
-          data.push(false);
+          data.push(0);
         }
 
       }
