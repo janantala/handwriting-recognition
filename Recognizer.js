@@ -154,7 +154,7 @@ var Recognizer = function(canvas) {
         var a = pixels[pixelIndex + 3];
 
         if (isBlack(r, g, b, a)){
-          distances.push(getManhattanDistance(collumn, row, 75, 75))
+          distances.push(getManhattanDistance(collumn, row, Math.floor(recognizer.context.canvas.width / 2), Math.floor(recognizer.context.canvas.height / 2)))
         }
       }
     }
@@ -162,6 +162,50 @@ var Recognizer = function(canvas) {
     return {
       'avg': getAvgDistance(distances),
       'median': getMedianDistance(distances),
+    };
+  };
+
+  var getPixels = function(){
+    var SAMPLE = 10;
+    var imgDate = recognizer.context.getImageData(0, 0, recognizer.context.canvas.width, recognizer.context.canvas.height);
+    var pixels = imgDate.data;
+
+    var data = [];
+
+    for (var row = 0; row < recognizer.context.canvas.height / SAMPLE; row++){
+      for (var collumn = 0; collumn < recognizer.context.canvas.width / SAMPLE; collumn++){
+
+        var blackPixels = 0;
+        for (var y = 0; y < SAMPLE; y++) {
+          for (var x = 0; x < SAMPLE; x++) {
+            var pixelIndex = ((row * SAMPLE + y) * recognizer.context.canvas.width + collumn * SAMPLE + x) * 4;
+
+            var r = pixels[pixelIndex];
+            var g = pixels[pixelIndex + 1];
+            var b = pixels[pixelIndex + 2];
+            var a = pixels[pixelIndex + 3];
+
+            if (isBlack(r, g, b, a)){
+              blackPixels++;
+            }
+          }
+        }
+
+        console.log(blackPixels);
+        if (blackPixels / (SAMPLE * SAMPLE) > 0.1) {
+          data.push(true);
+        }
+        else {
+          data.push(false);
+        }
+
+      }
+    }
+
+    return {
+      'width': recognizer.context.canvas.width / SAMPLE,
+      'height': recognizer.context.canvas.height / SAMPLE,
+      'data': data
     };
   };
   
@@ -178,12 +222,14 @@ var Recognizer = function(canvas) {
   recognizer.getInvariants = function(){
 
     var blackPixels = getBlackPixels();
+    var pixels = getPixels();
     var centerdistance = getCenterDistance();
     return {
       'strokes': recognizer.moves.length,
       'blackPixels': blackPixels,
       'avgDistance': centerdistance.avg,
-      'medianDistance': centerdistance.median
+      'medianDistance': centerdistance.median,
+      'pixels': pixels
     }
   };
 

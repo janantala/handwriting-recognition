@@ -41,7 +41,18 @@ controller('DrawCtrl', function($scope){
   };
 
   $scope.getInvariants = function(){
-    console.log(recognition.getInvariants());
+    var invariants = recognition.getInvariants();
+    console.log(invariants);
+
+    var row = '';
+    for (var i=0; i<invariants.pixels.height * invariants.pixels.width; i++){
+      c = invariants.pixels.data[i] ? 'x' : '-';
+      row += c;
+      if (row.length == invariants.pixels.width) {
+        console.log(row);
+        row = '';
+      }
+    }
   };
 
 });
