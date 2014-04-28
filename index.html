@@ -19,10 +19,25 @@
     <canvas id="canvas" width="150px" height="150px"></canvas>
   </div>
 
-  </p>
+  <p>
     <button ng-click="clear()" class="btn btn-default">Clear</button>
     <button ng-click="getInvariants()" class="btn btn-success">Invariants</button>
   </p>
+
+  <p>
+    <button 
+      ng-repeat="number in numbers"
+      ng-click="getDataNumber(number, numbers)"
+      class="btn btn-default"
+    >
+      {{number}}
+    </button>
+  </p>
+
+  <h3>Dataset:</h3>
+  <div>
+    {{dataset | json}}
+  </div>
 
 </div>
 
@@ -53,6 +68,46 @@ controller('DrawCtrl', function($scope){
         row = '';
       }
     }
+  };
+
+  $scope.numbers = [0,1,2,3,4,5,6,7,8,9];
+  $scope.dataset = [];
+
+  $scope.getDataNumber = function(number, numbers){
+    var invariants = recognition.getInvariants();
+
+    var row = '';
+    for (var i=0; i<invariants.pixels.height * invariants.pixels.width; i++){
+      c = invariants.pixels.data[i] ? 'x' : '-';
+      row += c;
+      if (row.length == invariants.pixels.width) {
+        console.log(row);
+        row = '';
+      }
+    }
+
+    var input = invariants.pixels.data;
+    input.push(invariants.strokes);
+    input.push(invariants.blackPixels);
+    input.push(invariants.avgDistance);
+    input.push(invariants.medianDistance);
+
+    var output = [];
+    numbers.forEach(function(n){
+      if (n === number) {
+        output.push(1);
+      }
+      else {
+        output.push(0);
+      }
+    });
+
+    $scope.dataset.push({
+      'input': input,
+      'output': output
+    });
+
+    $scope.clear();
   };
 
 });
