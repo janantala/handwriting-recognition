@@ -1,0 +1,18 @@
+{
+  "name": "neural-network",
+  "description": "Neural network library",
+  "version": "0.6.2",
+  "author": "Jan Antala <hello@janantala.com>",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/janantala/neural-network.git"
+  },
+  "main": "./src/neural-network",
+  "dependencies": {
+    "lodash" : "~2.4.x",
+    "minimist": "~0.0.8"
+  },
+  "devDependencies" : {
+  },
+  "keywords": ["neural network"]
+}

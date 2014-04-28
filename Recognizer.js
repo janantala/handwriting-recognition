@@ -160,13 +160,13 @@ var Recognizer = function(canvas) {
     }
 
     return {
-      'avg': getAvgDistance(distances),
-      'median': getMedianDistance(distances),
+      'avg': getAvgDistance(distances) / (recognizer.context.canvas.width / 2 + recognizer.context.canvas.height / 2),
+      'median': getMedianDistance(distances) / (recognizer.context.canvas.width / 2 + recognizer.context.canvas.height / 2),
     };
   };
 
   var getPixels = function(){
-    var SAMPLE = 10;
+    var SAMPLE = 30;
     var imgDate = recognizer.context.getImageData(0, 0, recognizer.context.canvas.width, recognizer.context.canvas.height);
     var pixels = imgDate.data;
 
