@@ -2,5 +2,5 @@
   "learningRate": 0.4,
   "momentum": 0.7,
   "iterations": 200000,
-  "logPeriod": 1000
+  "logPeriod": 2000
 }
