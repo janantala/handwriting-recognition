@@ -302,8 +302,7 @@ var getTrainData = function(files) {
     var d = [];
     var f = read_json(file, []);
     f.forEach(function(record){
-      var input = [record.input[record.input.length - 4], record.input[record.input.length - 3], record.input[record.input.length - 2], record.input[record.input.length - 1]];
-      d.push({ input: input, output: record.output});
+      d.push({ input: record.input, output: record.output});
     });
 
     data = data.concat(d);
@@ -331,7 +330,18 @@ switch (process.env.task) {
       d = read_json(argv.d, []);
     }
     else {
-      d = getTrainData(['train/0.json', 'train/1.json']);
+      d = getTrainData([
+        'train/0-plain.json',
+        'train/1-plain.json',
+        'train/2-plain.json',
+        'train/3-plain.json',
+        'train/4-plain.json',
+        'train/5-plain.json',
+        'train/6-plain.json',
+        'train/7-plain.json',
+        'train/8-plain.json',
+        'train/9-plain.json'
+        ]);
     }
     var trained = net.train(d);
     console.dir(trained);
