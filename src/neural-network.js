@@ -329,30 +329,30 @@ switch (process.env.task) {
       d = read_json(argv.d, []);
     }
     else {
-      // d = getTrainData([
-      //   'train/0-plain.json',
-      //   'train/1-plain.json',
-      //   'train/2-plain.json',
-      //   'train/3-plain.json',
-      //   'train/4-plain.json',
-      //   'train/5-plain.json',
-      //   'train/6-plain.json',
-      //   'train/7-plain.json',
-      //   'train/8-plain.json',
-      //   'train/9-plain.json'
-      //   ]);
       d = getTrainData([
-        'train/0.json',
-        'train/1.json',
-        'train/2.json',
-        'train/3.json',
-        'train/4.json',
-        'train/5.json',
-        'train/6.json',
-        'train/7.json',
-        'train/8.json',
-        'train/9.json'
+        'train/0-plain.json',
+        'train/1-plain.json',
+        'train/2-plain.json',
+        'train/3-plain.json',
+        'train/4-plain.json',
+        'train/5-plain.json',
+        'train/6-plain.json',
+        'train/7-plain.json',
+        'train/8-plain.json',
+        'train/9-plain.json'
         ]);
+      // d = getTrainData([
+      //   'train/0.json',
+      //   'train/1.json',
+      //   'train/2.json',
+      //   'train/3.json',
+      //   'train/4.json',
+      //   'train/5.json',
+      //   'train/6.json',
+      //   'train/7.json',
+      //   'train/8.json',
+      //   'train/9.json'
+      //   ]);
     }
     var trained = net.train(d);
     console.dir(trained);
