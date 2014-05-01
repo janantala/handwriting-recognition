@@ -1,0 +1,75 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\bfseries{ \bf TITLE}}
+\author{AUTHOR}
+\date{\today}
+
+\usepackage{a4wide}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc} 
+\usepackage[slovak]{babel}
+\usepackage{ae}
+\usepackage{placeins}
+\usepackage[pdftex]{graphicx}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage{url}
+\usepackage{pslatex}
+\usepackage{charter} 
+\usepackage{lmodern}
+\usepackage[svgnames]{xcolor}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage[stable]{footmisc}
+\usepackage[numbers]{natbib}
+\usepackage[titletoc]{appendix}
+
+\captionsetup{justification=centering}
+\selectlanguage{slovak}
+
+
+
+\begin{document}
+
+  %%% TITLE PAGE %%%
+  \input{title.tex}
+
+  %%% INTRO %%%
+  \newpage
+  \pagenumbering{roman}
+  \setcounter{page}{1}
+  \input{intro.tex}
+
+  %%% CONTENT %%%
+  \newpage
+  \onehalfspacing
+  \setlength{\parindent}{1cm}
+  \pagenumbering{arabic}
+  \setcounter{page}{1}
+  \input{content.tex}
+
+  %%% BIBLIOGRAPHY %%%
+  \newpage
+  \bibliographystyle{plainnat}
+  \bibliography{bibliography.bib}
+
+  %%% APPENDIX %%%
+  \begin{appendices}
+  \newpage
+  \input{appendix.tex}
+  \end{appendices}
+
+\end{document}
