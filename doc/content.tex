@@ -1,15 +1,699 @@
-\section{\LaTeX\ seed} % (fold)
-\label{sec:latex_seed}
+\section{Zadanie} % (fold)
+\label{sec:zadanie}
+
+Rozpoznajte ručne písané čísla pomocou dobrednej neurónovej siete tak aby ich poloha bola nezávislá a umožňovala rozpoznanie aj zrotovaných znakov. Natrénujte ju algoritmom spätného šírenia chyby. Navrhnite použité invarianty na nezávislosť rotácie znaku. Získané výsledky porovnajte s SVM.
+
+Zároveň umožnite v programe zadávať vstupný znak a automaticky vyhodnoťte pravdepodobnosť podobnosti nakresleného znaku na každé číslo.
+
+% section zadanie (end)
+
+\section{Riešenie} % (fold)
+\label{sec:rie_enie}
+
+Neurónová sieť je vytvorená v node.js. Učenie prebieha pomocou algoritmu backpropagation. Sieť je tvorená dvojrezmernými poliami reprezentujúce váhy, výstupy, zmeny a chyby. Prvý rozmer polí charakterizuje jednotlivé vrstvy siete: vstupná, skryté a výstupné, druhý rozmer už jednotlivé neuróny v každej vrstve. Počas trénovania sa vypisuje priemerna chyba a úspešnosť klasifikácie.
+
+% section rie_enie (end)
+
+\section{Použitie systému} % (fold)
+\label{sec:pou_itie_syst_mu}
+
+Systém sa spúšťa z terminálu, kde sa definujú úlohy, nastavenia či dáta s ktorými sa pracuje.
+
+\begin{verbatim}
+$ task=data ./src/neural-network.js -o options.json
+\end{verbatim}
+
+\subsection{Inštalácia závislostí} % (fold)
+\label{sub:in_tal_cia}
+
+Riešenie používa závislosti na lepšiu prácu s polami či prepínačmi, preto je potrebné ich doinštalovať. Nachádzajú sa v súbore package.js a na ich inštaláciu sa použije npm.
+
+\begin{verbatim}
+$ npm install
+\end{verbatim}
+
+% subsection in_tal_cia (end)
+
+\subsection{Prepínače} % (fold)
+\label{sub:prep_na_e}
+
+Premenná prostredia ,,task=data' slúži na trénovanie siete a definuje úlohu, ktorá sa má vykonávať.
+
+Pokiaľ sa zvolí úloha ,,data'', tak je potrebné parametrom -d definovať aj vstupný súbor s údajmi alebo sa načítajú predvolené trénovacie dáta.
+
+Pre načítanie natrénovanej siete zo súboru sa zvolí parameter -f s názvom súboru.
+
+Pre uloženie natrénovanej siete do súboru sa zvolí parameter -s s názvom súboru.
+
+Na testovanie siete sa zadá parameter -t s názvom súboru.
+
+Pre nastavenia sa zadá parameter -o so súborom.
+
+% subsection prep_na_e (end)
+
+\subsection{Nastavenia} % (fold)
+\label{sub:nastavenia}
+
+Nastavenia siete sa načítavajú z json súboru, pričom predvolené hodnoty sú nasledujúce
+
+\begin{verbatim}
+{
+  "bias": 1,
+  "iterations": 10000,
+  "errorThresh": 0.01,
+  "okThresh": 1,
+  "learningRate": 0.3,
+  "momentum": 0.7,
+  "hiddenLayers" [30], // defaultne rovné počtu vstupných neurónov
+  "shuffle": true,
+  "logPeriod": 1000
+}
+\end{verbatim}
+
+% subsection nastavenia (end)
+
+\section{Vstupné atribúty a invarianty} % (fold)
+\label{sec:vstupn_atrib_ty}
+
+\begin{itemize}
+  \item 25 neurónov reprezentujúce tvar nakresleného objektu upreveného do rozlíšenia 5x5
+  \item počet ťahov potrebných na nakreslenie objektu
+  \item pomer počtu tmavých pixelov k bielym
+  \item priemerná vzdialenosť tmavého pixelu od stredu
+  \item medián vzdialenosti tmavého pixelu od stredu
+\end{itemize}
+
+% section vstupn_atrib_ty (end)
+
+\subsection{Trénovacie dáta} % (fold)
+\label{sub:vstupn_d_ta}
+
+Dáta na trénovanie sa načítavajú zo súboru a majú nasledujúcu json štruktúru:
+
+\begin{verbatim}
+[
+  { 
+    "input": [0, 0, 1, ...., 1, 0.09782222223, 0.3042556413, 0.31333335],
+    "output": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  }
+  ...
+]
+\end{verbatim}
+
+V input atribúte sa nachádzajú hodnoty pre vstupné neuróny, v output sú výstupné.
+
+% subsection vstupn_d_ta (end)
+
+\subsection{Testovacie dáta} % (fold)
+\label{sub:testovacie_d_ta}
+
+Dáta na testovanie sa načítavajú zo súboru a majú nasledujúcu json štruktúru s hodnotami pre vstupné neuróny:
+
+\begin{verbatim}
+[
+  { 
+    "input": [0, 0, 1, ...., 1, 0.09782222223, 0.3042556413, 0.31333335]
+  }
+  ...
+]
+\end{verbatim}
+
+% subsection testovacie_d_ta (end)
+
+% section pou_itie_syst_mu (end)
+
+\newpage
+\section{Experimenty} % (fold)
+\label{sec:experimenty}
+
+Porovnali sme spôsoby klasifikácie pomocou vlastnej neurónovej siete a pomocou SVM. Pri oboch sme experimentovali s dvoma datasetmi - čísla napísané len vzpriamene a napísané aj s rotáciou. Ich výsledky sú nasledujúce:
+
+\subsection{Neurónová sieť} % (fold)
+
+Na klasifikáciu bola použitá dopredná neurónová sieť. Každý z experimentov sa vykonal 10-krát a v nasledujúcich grafoch sa nachádzajú ich priemerné hodnoty.
+
+\subsubsection{Učenie v rovnej polohe} % (fold)
+
+Priebeh učenia neurónovej siete bol nasledujúci:
+
+\begin{figure}[ht]
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{img/plain.png}
+        \caption{Učenie v rovnej polohe\\
+        Špecifikácia: learningRate 0.3, momentum 0.7}
+    \end{center}
+\end{figure}
+
+Celkové dosiahnuté výsledky boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l |}
+    \hline
+    Metóda & Odchýlka & Úspešne klasifikované \\ \hline
+    Neurónová sieť na klasifikáciu čísel v rovnej polohe & 0.021 & 0.819 \\
+    \hline
+  \end{tabular}
+  \caption[Neurónová sieť na klasifikáciu čísel v rovnej polohe]{Neurónová sieť na klasifikáciu čísel v rovnej polohe}
+\end{table}
+
+\newpage
+Výsledky pre jednotlivé čísla boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & \textbf{0.99} & 4.3e-8 & 1.0e-9 & 6.6e-9 & 3.8e-9 & 0 & 1.1e-7 & 0 & 0.01 & 4.1e-8 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 0]{Rozpoznanie čísla 0}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0.04 & \textbf{0.82} & 1.4e-9 & 0 & 1.7e-5 & 0 & 0.002 & 2.3e-6 & 7.1e-5 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 1]{Rozpoznanie čísla 1}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 1.5e-9 & \textbf{0.87} & 0.008 & 0 & 1.4e-9 & 0 & 0 & 1.9e-7 & 3.8e-6 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 2]{Rozpoznanie čísla 2}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.9e-4 & 4.5e-9 & 0 & \textbf{4.7e-5} & 0 & 5.6e-8 & 0 & 5.6e-7 & 0 & 0.99 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 3]{Rozpoznanie čísla 3}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.1e-9 & 0 & 0 & 0 & \textbf{0.93} & 0 & 0 & 1.2e-6 & 0.0001 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 4]{Rozpoznanie čísla 4}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 2.3e-9 & 0 & 1.1e-6 & \textbf{9.3e-9} & 0 & 4.3e-7 & 0.007 & 1.8e-5 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 5]{Rozpoznanie čísla 5}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 2.2e-5 & 2.8e-8 & 1.1e-8 & 0 & 5.0e-8 & 0 & \textbf{1.9e-12} & 3.4e-5 & 0.0009 & 0.02 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 6]{Rozpoznanie čísla 6}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 0.01 & 8.3e-7 & 0 & 0 & \textbf{0.76} & 0 & 7.6e-5 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 7]{Rozpoznanie čísla 7}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.6e-7 & 0 & 2.2e-9 & 0 & 0 & 6.0e-8 & 0 & 3.1e-5 & \textbf{0.99} & 0.002 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 8]{Rozpoznanie čísla 8}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 2.4e-7 & 0 & 1.4e-9 & 0.006 & 0 & 9.5e-8 & 0 & 1.9e-8 & 7.7e-7 & \textbf{0.99} \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 9]{Rozpoznanie čísla 9}
+\end{table}
 
 
-\subsection{Cheerio!} % (fold)
-\label{sub:cheerio_}
+\subsubsection{Učenie s rotáciou} % (fold)
 
-You have a \LaTeX\ seed installed.\\
-Check out GitHub repository \cite{githubrepo}.
+Priebeh učenia neurónovej siete bol nasledujúci:
 
-% subsection cheerio_ (end)
+\begin{figure}[ht]
+    \begin{center}
+        \includegraphics[width=1\textwidth]{img/rotate.png}
+        \caption{Učenie s rotáciou\\
+        Špecifikácia: learningRate 0.3, momentum 0.7}
+    \end{center}
+\end{figure}
+
+Celkové dosiahnuté výsledky boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l |}
+    \hline
+    Metóda & Odchýlka & Úspešne klasifikované \\ \hline
+    Neurónová sieť na klasifikáciu čísel s rotáciou & 0.038 & 0.752 \\
+    \hline
+  \end{tabular}
+  \caption[Neurónová sieť na klasifikáciu čísel s rotáciou]{Neurónová sieť na klasifikáciu čísel s rotáciou}
+\end{table}
+
+\newpage
+Výsledky pre jednotlivé čísla boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & \textbf{0.99} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 0]{Rozpoznanie čísla 0}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & \textbf{0.001} & 0 & 0 & 0 & 0 & 0.99 & 0 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 1]{Rozpoznanie čísla 1}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & \textbf{0.03} & 0 & 0 & 0 & 4.5e-5 & 0 & 0 & 0.96 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 2]{Rozpoznanie čísla 2}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0.007 & 0 & 0.68 & \textbf{0.03} & 0 & 0 & 0 & 0 & 0 & 0.99 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 3]{Rozpoznanie čísla 3}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 2.6e-4 & \textbf{0.99} & 3.2e-6 & 0 & 0 & 6.0e-8 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 4]{Rozpoznanie čísla 4}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 2.8e-7 & 0.02 & \textbf{0.71} & 0 & 0.15 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 5]{Rozpoznanie čísla 5}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 9.3e-5 & 0 & 0 & 0 & \textbf{0.53} & 0 & 0 & 0.41 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 6]{Rozpoznanie čísla 6}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0.0002 & 9.1e-6 & 1.5e-8 & 0 & 0 & 0 & \textbf{0.84} & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 7]{Rozpoznanie čísla 7}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.0e-5 & 0 & 0 & 0 & 0 & 2.1e-8 & 2.5e-7 & 0 & \textbf{0.62} & 0.32 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 8]{Rozpoznanie čísla 8}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 6.5e-5 & 0 & 0 & 0 & 0 & 0 & 0.36 & 0 & 0 & \textbf{0.59} \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 9]{Rozpoznanie čísla 9}
+\end{table}
+
+Pri rotácii sú úspešnosti klasifikácie menšie ako len pre znaky v rovnej polohe. Často sa zamieňali znaky za iné, napríklad čísla ,,6'' a ,,9'' je pri rotácii takmer nemožné rozoznať.
 
 
-% section latex_seed (end)
+\newpage
+\subsection{SVM} % (fold)
+
+Experimenty pomocou SVM sa vykonali na datasete v programe R. Ich zdrojový kód bol nasledujúci:
+
+\begin{verbatim}
+library(e1071)
  
+testset <- read.table("test.dat",header = T)
+trainset <- read.table("train.dat",header = T)
+ 
+svm.model <- svm(x=trainset[,-7], y=trainset[,7], probability=T, scale = FALSE)
+svm.pred <- predict(svm.model, test[,-8])
+test<- subset(testset, select=(-j))
+test<- subset(test, select=(-k))
+ 
+table(pred = svm.pred, true = test[,2])
+\end{verbatim}
+
+
+\subsubsection{Učenie v rovnej polohe} % (fold)
+
+Celkové dosiahnuté výsledky boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l |}
+    \hline
+    Metóda & Odchýlka & Úspešne klasifikované \\ \hline
+    SVM na klasifikáciu čísel v rovnej polohe & 0.023 & 0.813 \\
+    \hline
+  \end{tabular}
+  \caption[SVM na klasifikáciu čísel v rovnej polohe]{SVM na klasifikáciu čísel v rovnej polohe}
+\end{table}
+
+Výsledky pre jednotlivé čísla boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & \textbf{0.99} & 2.3e-7 & 0 & 0 & 0 & 0 & 5.1e-8 & 0 & 0.006 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 0]{Rozpoznanie čísla 0}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0.005 & \textbf{0.78} & 1.8e-6 & 0 & 0 & 0 & 0 & 0.007 & 2.1e-9 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 1]{Rozpoznanie čísla 1}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & \textbf{0.83} & 0.012 & 0 & 2.9e-8 & 0 & 0 & 3.4e-7 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 2]{Rozpoznanie čísla 2}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 2.9e-7 & 0 & 0 & \textbf{0.002} & 0 & 3.6e-8 & 0 & 5.0e-7 & 0 & 0.94 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 3]{Rozpoznanie čísla 3}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 2.1e-8 & 0 & 4.7e-9 & 0 & \textbf{0.91} & 0 & 0 & 3.2e-6 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 4]{Rozpoznanie čísla 4}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 0 & 6.1e-5 & \textbf{0.004} & 0 & 6.3e-7 & 0.327 & 2.3e-6 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 5]{Rozpoznanie čísla 5}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 4.6e-5 & 0 & 0 & 0 & 3.8e-5 & 0 & \textbf{6.2e-8} & 2.9e-6 & 0.03 & 0.06 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 6]{Rozpoznanie čísla 6}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 0.02 & 2.4e-9 & 0 & 0 & \textbf{0.71} & 0 & 3.9e-6 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 7]{Rozpoznanie čísla 7}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.2e-8 & 0 & 0 & 0 & 0 & 3.4e-7 & 0 & 3.3e-6 & \textbf{0.98} & 0.007 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 8]{Rozpoznanie čísla 8}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.3e-6 & 0 & 0 & 0.009 & 0 & 3.5e-6 & 0 & 0 & 3.8e-6 & \textbf{0.99} \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 9]{Rozpoznanie čísla 9}
+\end{table}
+
+\newpage
+\subsubsection{Učenie s rotáciou} % (fold)
+
+Celkové dosiahnuté výsledky boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l |}
+    \hline
+    Metóda & Odchýlka & Úspešne klasifikované \\ \hline
+    SVM na klasifikáciu čísel s rotáciou & 0.035 & 0.761 \\
+    \hline
+  \end{tabular}
+  \caption[SVM na klasifikáciu čísel s rotáciou]{SVM na klasifikáciu čísel s rotáciou}
+\end{table}
+
+Výsledky pre jednotlivé čísla boli nasledujúce:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & \textbf{0.99} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.9e-9 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 0]{Rozpoznanie čísla 0}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & \textbf{0.02} & 0 & 1.3e-7 & 0 & 0 & 0.88 & 0 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 1]{Rozpoznanie čísla 1}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & \textbf{0.14} & 0 & 0 & 0 & 2.4e-6 & 0 & 0 & 0.82 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 2]{Rozpoznanie čísla 2}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0.001 & 0 & 0.32 & \textbf{0.07} & 0 & 0 & 0 & 0 & 0 & 0.92 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 3]{Rozpoznanie čísla 3}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 1.9e-9 & \textbf{0.99} & 2.2e-7 & 0 & 0 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 4]{Rozpoznanie čísla 4}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 1.2e-6 & 0.04 & \textbf{0.75} & 0 & 0.11 & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 5]{Rozpoznanie čísla 5}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 0 & 0 & 0.008 & 0 & 0 & \textbf{0.56} & 0 & 0 & 0.37 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 6]{Rozpoznanie čísla 6}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0 & 5.3e-6 & 0 & 0.008 & 0 & 0.16 & 0 & \textbf{0.74} & 0 & 0 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 7]{Rozpoznanie čísla 7}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 0.005 & 0 & 0 & 0 & 0 & 6.3e-7 & 1.5e-7 & 0 & \textbf{0.65} & 0.27 \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 8]{Rozpoznanie čísla 8}
+\end{table}
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l | l | l | l | l | l | l | l | l |}
+    \hline
+    Číslo & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\ \hline
+    Pravdepodobnosť & 1.2e-7 & 0 & 0 & 4.5e-6 & 0 & 0 & 0.35 & 0 & 0 & \textbf{0.61} \\
+    \hline
+  \end{tabular}
+  \caption[Rozpoznanie čísla 9]{Rozpoznanie čísla 9}
+\end{table}
+
+
+% subsection svm (end)
+
+% section experimenty (end)
+
+\newpage
+\section{Aplikácia na rozpoznanie napísaného čísla} % (fold)
+\label{sec:rozpoznanie_v_re_lnom_ase}
+
+Zároveň sme vytvorili aj aplikáciu, kde je možné rozpoznávať písané čísla. Je dostupná na githube \url{https://github.com/janantala/handwriting-recognition}.
+
+Je v nej možné zvoliť mód klasifikácie medzi napísanými číslami len v priamej polohe a s rotáciou. Po napísaní čísla a kliknutí na tlačidlo ,,Recognise'' sa automaticky vykoná klasifikácia napísaného čísla a získajú sa výsledky s akou pravdepodobnosťou sa napísaný znak podobá na konkrétne číslo. Po kliknutí na tlačidlo ,,Clear'' sa napísaný znak vymaže.
+
+Náhľad aplikácie je znázornený na nasledujúcom obrázku:\\
+
+\begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=80px]{img/livePlain.png}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.3\textwidth}
+                \centering
+                \includegraphics[width=80px]{img/liveRot.png}
+        \end{subfigure}
+
+        \caption[Aplikácia na rozpoznanie napísaného čísla]{Aplikácia na rozpoznanie napísaného čísla}
+    \label{fig:tnavphones}
+\end{figure}
+
+% section rozpoznanie_v_re_lnom_ase (end)
+
+\newpage
+\section{Zhodnotenie} % (fold)
+\label{sec:zhodnotenie}
+
+Porovnali sme spôsoby klasifikácie pomocou vlastnej neurónovej siete a pomocou SVM. Pri oboch sme experimentovali s dvoma datasetmi - čísla napísané len vzpriamene a napísané aj s rotáciou. Výsledky vychádzajú nasledujúco:
+
+\begin{table}[H]
+  \begin{tabular}{ | l | l | l |}
+    \hline
+    Metóda & Odchýlka & Úspešne klasifikované \\ \hline
+    Neurónová sieť na klasifikáciu čísel v rovnej polohe & 0.021 & 0.819 \\ \hline
+    Neurónová sieť na klasifikáciu čísel s rotáciou & 0.038 & 0.752 \\ \hline
+    SVM na klasifikáciu čísel v rovnej polohe & 0.023 & 0.813 \\ \hline
+    SVM na klasifikáciu čísel s rotáciou & 0.035 & 0.761 \\
+    \hline
+  \end{tabular}
+  \caption[Porovnanie metód klasifikácie]{Porovnanie metód klasifikácie}
+\end{table}
+
+Pokiaľ sú v datasete len čísla napísané v rovnej polohe, tak je úspešnosť klasifikácie väčšia ako keď porovnávame aj rotáciu. Neurónová sieť aj SVM dosiahli v klasifikácii na našich datasetoch podobné výsledky a výsledky sa líšia len minimálne.
+
+% section zhodnotenie (end)
